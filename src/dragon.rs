@@ -5,7 +5,7 @@ use bevy_asset_loader::prelude::{LoadingState, *};
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::{grid, Action, AssetProvider, Direction, LoadTaskCount, State};
+use crate::{grid, level, Action, AssetProvider, Direction, State};
 
 #[derive(Clone, Debug)]
 pub struct SpawnDragon {
@@ -29,7 +29,7 @@ struct DragonAssets {
 fn spawn_dragon(
     mut commands: Commands,
     mut events: EventReader<SpawnDragon>,
-    mut task_count: ResMut<LoadTaskCount>,
+    mut task_count: ResMut<level::LoadTaskCount>,
     assets: Res<DragonAssets>,
 ) {
     for event in events.iter() {
@@ -96,8 +96,8 @@ fn dragon_movement(
             .insert(*position);
 
         let (dx, dy) = match direction.process_action(action) {
-            Direction::Up => (0, -1),
-            Direction::Down => (0, 1),
+            Direction::Up => (0, 1),
+            Direction::Down => (0, -1),
             Direction::Left => (-1, 0),
             Direction::Right => (1, 0),
         };
@@ -112,8 +112,8 @@ fn rotate_dragons(mut q: Query<(&Direction, &mut Transform)>) {
         transform.rotation = Quat::from_rotation_z(
             (PI / 180.0)
                 * match direction {
-                    Direction::Up => 90.0,
-                    Direction::Down => 270.0,
+                    Direction::Up => 270.0,
+                    Direction::Down => 90.0,
                     Direction::Left => 0.0,
                     Direction::Right => 180.0,
                 },

@@ -7,6 +7,8 @@ edition = "2021"
 bevy_asset_loader = { version = "0.12.1", features = ["2d", "stageless"] }
 leafwing-input-manager = { version = "0.6.1", default-features = false }
 iyes_loopless = "0.7.1"
+bevy_common_assets = { version = "0.3.0", features = ["json"] }
+serde = "1.0.147"
 
 [dependencies.bevy]
 version = "0.8.1"

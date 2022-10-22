@@ -8,6 +8,7 @@ use leafwing_input_manager::prelude::*;
 
 mod dragon;
 mod grid;
+mod level;
 
 pub trait AssetProvider<State: StateData> {
     fn provide(&self, state: LoadingState<State>) -> LoadingState<State>;
@@ -37,10 +38,7 @@ enum State {
     InLevel,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct LoadTaskCount(pub usize);
-
-#[derive(Component, Copy, Clone, Debug)]
+#[derive(serde::Deserialize, Component, Copy, Clone, Debug)]
 pub enum Direction {
     Up,
     Down,
@@ -52,13 +50,13 @@ impl Direction {
     fn process_action(&mut self, action: Action) -> Self {
         match action {
             Action::Forwards => (),
-            Action::TurnRight => match *self {
+            Action::TurnLeft => match *self {
                 Direction::Up => *self = Direction::Left,
                 Direction::Down => *self = Direction::Right,
                 Direction::Left => *self = Direction::Down,
                 Direction::Right => *self = Direction::Up,
             },
-            Action::TurnLeft => match *self {
+            Action::TurnRight => match *self {
                 Direction::Up => *self = Direction::Right,
                 Direction::Down => *self = Direction::Left,
                 Direction::Left => *self = Direction::Up,
@@ -68,48 +66,6 @@ impl Direction {
 
         *self
     }
-}
-
-fn load_level(mut commands: Commands, mut dragon_events: EventWriter<dragon::SpawnDragon>) {
-    commands.spawn_bundle(Camera2dBundle::default());
-
-    commands.spawn_bundle(grid::GridBundle {
-        size: grid::GridSize::new_square(10),
-        scale: grid::GridScale::new_square(32.0),
-    });
-
-    let dragons = [
-        dragon::SpawnDragon {
-            x: 10,
-            y: 7,
-            direction: Direction::Left,
-        },
-        dragon::SpawnDragon {
-            x: 0,
-            y: 3,
-            direction: Direction::Right,
-        },
-        dragon::SpawnDragon {
-            x: 7,
-            y: 10,
-            direction: Direction::Up,
-        },
-        dragon::SpawnDragon {
-            x: 3,
-            y: 0,
-            direction: Direction::Down,
-        },
-    ];
-
-    let event_count = dragons.len();
-    commands.insert_resource(LoadTaskCount(event_count));
-
-    dragon_events.send_batch(dragons.into_iter());
-}
-
-fn finish_level_load(mut commands: Commands) {
-    commands.remove_resource::<LoadTaskCount>();
-    commands.insert_resource(NextState(State::InLevel));
 }
 
 fn main() {
@@ -131,17 +87,13 @@ fn main() {
         .add_loading_state(
             LoadingState::new(State::AssetLoading)
                 .continue_to_state(State::LevelLoading)
-                .with_asset_provider(dragon::DragonPlugin),
+                .with_asset_provider(dragon::DragonPlugin)
+                .with_asset_provider(level::LevelPlugin),
         )
         .add_plugins(DefaultPlugins)
         .add_plugin(InputManagerPlugin::<Action>::default())
         .add_plugin(grid::GridPlugin)
         .add_plugin(dragon::DragonPlugin)
-        .add_enter_system(State::LevelLoading, load_level)
-        .add_system(
-            finish_level_load
-                .run_in_state(State::LevelLoading)
-                .run_if_resource_equals(LoadTaskCount(0)),
-        )
+        .add_plugin(level::LevelPlugin)
         .run()
 }
