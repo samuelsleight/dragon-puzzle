@@ -1,0 +1,13 @@
+{
+    "size": [6, 5],
+    "dragons": [
+        {
+            "position": [2, 2],
+            "direction": "Left"
+        },
+        {
+            "position": [3, 2],
+            "direction": "Right"
+        }
+    ]
+}

@@ -5,7 +5,7 @@ use bevy_asset_loader::prelude::{LoadingState, *};
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::{grid, level, Action, AssetProvider, Direction, State};
+use crate::{action::Action, grid, level, AssetProvider, Direction, State};
 
 #[derive(Clone, Debug)]
 pub struct SpawnDragon {
@@ -16,6 +16,9 @@ pub struct SpawnDragon {
 
 #[derive(Component)]
 pub struct DragonHead;
+
+#[derive(Component)]
+pub struct DragonComponent;
 
 pub struct DragonPlugin;
 
@@ -40,15 +43,16 @@ fn spawn_dragon(
             })
             .insert_bundle(InputManagerBundle::<Action> {
                 input_map: InputMap::new([
-                    (KeyCode::W, Action::Forwards),
-                    (KeyCode::Up, Action::Forwards),
-                    (KeyCode::A, Action::TurnLeft),
-                    (KeyCode::D, Action::TurnRight),
-                    (KeyCode::Left, Action::TurnLeft),
-                    (KeyCode::Right, Action::TurnRight),
+                    (KeyCode::W, Action::MovementForwards),
+                    (KeyCode::Up, Action::MovementForwards),
+                    (KeyCode::A, Action::MovementTurnLeft),
+                    (KeyCode::D, Action::MovementTurnRight),
+                    (KeyCode::Left, Action::MovementTurnLeft),
+                    (KeyCode::Right, Action::MovementTurnRight),
                 ]),
                 ..Default::default()
             })
+            .insert(DragonComponent)
             .insert(DragonHead)
             .insert(event.direction)
             .insert(grid::GridPosition {
@@ -73,37 +77,35 @@ fn dragon_movement(
     >,
 ) {
     for (action, mut direction, mut position) in dragons.iter_mut() {
-        let action = if action.just_released(Action::Forwards) {
-            Action::Forwards
-        } else if action.just_released(Action::TurnLeft) {
-            Action::TurnLeft
-        } else if action.just_released(Action::TurnRight) {
-            Action::TurnRight
-        } else {
-            continue;
-        };
+        for action in action.get_just_released() {
+            let action = match action.movement() {
+                Some(action) => action,
+                _ => continue,
+            };
 
-        commands
-            .spawn_bundle(SpriteSheetBundle {
-                sprite: TextureAtlasSprite {
-                    index: 1,
+            commands
+                .spawn_bundle(SpriteSheetBundle {
+                    sprite: TextureAtlasSprite {
+                        index: 1,
+                        ..Default::default()
+                    },
+                    texture_atlas: assets.atlas.clone(),
                     ..Default::default()
-                },
-                texture_atlas: assets.atlas.clone(),
-                ..Default::default()
-            })
-            .insert(*direction)
-            .insert(*position);
+                })
+                .insert(DragonComponent)
+                .insert(*direction)
+                .insert(*position);
 
-        let (dx, dy) = match direction.process_action(action) {
-            Direction::Up => (0, 1),
-            Direction::Down => (0, -1),
-            Direction::Left => (-1, 0),
-            Direction::Right => (1, 0),
-        };
+            let (dx, dy) = match direction.process_action(action) {
+                Direction::Up => (0, 1),
+                Direction::Down => (0, -1),
+                Direction::Left => (-1, 0),
+                Direction::Right => (1, 0),
+            };
 
-        position.x += dx;
-        position.y += dy;
+            position.x += dx;
+            position.y += dy;
+        }
     }
 }
 

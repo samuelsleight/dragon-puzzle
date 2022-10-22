@@ -1,3 +1,4 @@
+use action::{Action, MovementAction};
 use bevy::{
     ecs::schedule::StateData, prelude::*, render::texture::ImageSettings, window::WindowDescriptor,
     DefaultPlugins,
@@ -6,6 +7,7 @@ use bevy_asset_loader::prelude::*;
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
+mod action;
 mod dragon;
 mod grid;
 mod level;
@@ -24,13 +26,6 @@ impl<State: StateData> LoadingStateExt<State> for LoadingState<State> {
     }
 }
 
-#[derive(Actionlike, Clone, Copy, Hash, Debug)]
-enum Action {
-    Forwards,
-    TurnLeft,
-    TurnRight,
-}
-
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 enum State {
     AssetLoading,
@@ -47,16 +42,16 @@ pub enum Direction {
 }
 
 impl Direction {
-    fn process_action(&mut self, action: Action) -> Self {
+    fn process_action(&mut self, action: MovementAction) -> Self {
         match action {
-            Action::Forwards => (),
-            Action::TurnLeft => match *self {
+            MovementAction::Forwards => (),
+            MovementAction::TurnLeft => match *self {
                 Direction::Up => *self = Direction::Left,
                 Direction::Down => *self = Direction::Right,
                 Direction::Left => *self = Direction::Down,
                 Direction::Right => *self = Direction::Up,
             },
-            Action::TurnRight => match *self {
+            MovementAction::TurnRight => match *self {
                 Direction::Up => *self = Direction::Right,
                 Direction::Down => *self = Direction::Left,
                 Direction::Left => *self = Direction::Up,
@@ -66,6 +61,10 @@ impl Direction {
 
         *self
     }
+}
+
+fn spawn_camera(mut commands: Commands) {
+    commands.spawn_bundle(Camera2dBundle::default());
 }
 
 fn main() {
@@ -87,13 +86,14 @@ fn main() {
         .add_loading_state(
             LoadingState::new(State::AssetLoading)
                 .continue_to_state(State::LevelLoading)
-                .with_asset_provider(dragon::DragonPlugin)
-                .with_asset_provider(level::LevelPlugin),
+                .with_asset_provider(level::LevelPlugin)
+                .with_asset_provider(dragon::DragonPlugin),
         )
         .add_plugins(DefaultPlugins)
         .add_plugin(InputManagerPlugin::<Action>::default())
         .add_plugin(grid::GridPlugin)
-        .add_plugin(dragon::DragonPlugin)
         .add_plugin(level::LevelPlugin)
-        .run()
+        .add_plugin(dragon::DragonPlugin)
+        .add_exit_system(State::AssetLoading, spawn_camera)
+        .run();
 }
