@@ -1,7 +1,4 @@
 use bevy::prelude::*;
-use iyes_loopless::prelude::*;
-
-use crate::State;
 
 #[derive(Bundle, Clone, Copy)]
 pub struct GridBundle {
@@ -41,7 +38,10 @@ fn align_to_grid(
     grid_query: Query<(&GridSize, &GridScale)>,
     mut entity_query: Query<(&GridPosition, &mut Transform)>,
 ) {
-    let (size, scale) = grid_query.single();
+    let (size, scale) = match grid_query.get_single() {
+        Ok(result) => result,
+        Err(_) => return,
+    };
 
     for (position, mut transform) in entity_query.iter_mut() {
         transform.translation = Vec3::new(
@@ -82,7 +82,7 @@ impl Plugin for GridPlugin {
     fn build(&self, app: &mut App) {
         app.add_stage(
             GridStage,
-            SystemStage::parallel().with_system(align_to_grid.run_in_state(State::InLevel)),
+            SystemStage::parallel().with_system(align_to_grid),
         );
     }
 }
