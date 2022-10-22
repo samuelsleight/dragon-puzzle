@@ -10,6 +10,8 @@ use bevy::{
 use bevy_asset_loader::prelude::*;
 use iyes_loopless::prelude::*;
 
+mod grid;
+
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 enum State {
     AssetLoading,
@@ -36,12 +38,6 @@ enum Action {
     Forwards,
     TurnLeft,
     TurnRight,
-}
-
-#[derive(Component, Copy, Clone)]
-struct Position {
-    x: i32,
-    y: i32,
 }
 
 #[derive(Component)]
@@ -72,6 +68,11 @@ impl Direction {
 fn load_level(mut commands: Commands, assets: Res<DragonAssets>) {
     commands.spawn_bundle(Camera2dBundle::default());
 
+    commands.spawn_bundle(grid::GridBundle {
+        size: grid::GridSize::new_square(10),
+        scale: grid::GridScale::new_square(32.0),
+    });
+
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: assets.atlas.clone(),
@@ -79,7 +80,7 @@ fn load_level(mut commands: Commands, assets: Res<DragonAssets>) {
         })
         .insert(DragonHead)
         .insert(Direction::Right)
-        .insert(Position { x: 0, y: 3 });
+        .insert(grid::GridPosition { x: 0, y: 3 });
 
     commands
         .spawn_bundle(SpriteSheetBundle {
@@ -88,7 +89,7 @@ fn load_level(mut commands: Commands, assets: Res<DragonAssets>) {
         })
         .insert(DragonHead)
         .insert(Direction::Left)
-        .insert(Position { x: 10, y: 7 });
+        .insert(grid::GridPosition { x: 10, y: 7 });
 
     commands
         .spawn_bundle(SpriteSheetBundle {
@@ -97,7 +98,7 @@ fn load_level(mut commands: Commands, assets: Res<DragonAssets>) {
         })
         .insert(DragonHead)
         .insert(Direction::Up)
-        .insert(Position { x: 7, y: 10 });
+        .insert(grid::GridPosition { x: 7, y: 10 });
 
     commands
         .spawn_bundle(SpriteSheetBundle {
@@ -106,14 +107,43 @@ fn load_level(mut commands: Commands, assets: Res<DragonAssets>) {
         })
         .insert(DragonHead)
         .insert(Direction::Down)
-        .insert(Position { x: 3, y: 0 });
+        .insert(grid::GridPosition { x: 3, y: 0 });
+}
+
+fn grid_resizing(input: Res<Input<KeyCode>>, mut grid: Query<&mut grid::GridSize>) {
+    let size = if input.just_released(KeyCode::Key1) {
+        1
+    } else if input.just_released(KeyCode::Key2) {
+        2
+    } else if input.just_released(KeyCode::Key3) {
+        3
+    } else if input.just_released(KeyCode::Key4) {
+        4
+    } else if input.just_released(KeyCode::Key5) {
+        5
+    } else if input.just_released(KeyCode::Key6) {
+        6
+    } else if input.just_released(KeyCode::Key7) {
+        7
+    } else if input.just_released(KeyCode::Key8) {
+        8
+    } else if input.just_released(KeyCode::Key9) {
+        9
+    } else if input.just_released(KeyCode::Key0) {
+        10
+    } else {
+        return;
+    };
+
+    let mut grid_size = grid.single_mut();
+    *grid_size = grid::GridSize::new_square(size);
 }
 
 fn dragon_movement(
     mut commands: Commands,
     assets: Res<DragonAssets>,
     input: Res<Input<KeyCode>>,
-    mut dragons: Query<(&mut Direction, &mut Position), With<DragonHead>>,
+    mut dragons: Query<(&mut Direction, &mut grid::GridPosition), With<DragonHead>>,
 ) {
     let action = if input.just_released(KeyCode::W) || input.just_released(KeyCode::Up) {
         Action::Forwards
@@ -150,16 +180,8 @@ fn dragon_movement(
     }
 }
 
-fn position_dragons(mut q: Query<(&Position, &Direction, &mut Transform)>) {
-    fn convert(grid_coord: i32) -> f32 {
-        let max_grid_pixels = 10.0 * 32.0;
-        let this_grid_pixels = grid_coord as f32 * 32.0;
-        0.0 - (max_grid_pixels / 2.0) + this_grid_pixels
-    }
-
-    for (position, direction, mut transform) in q.iter_mut() {
-        transform.translation = Vec3::new(convert(position.x), convert(position.y), 0.0);
-
+fn rotate_dragons(mut q: Query<(&Direction, &mut Transform)>) {
+    for (direction, mut transform) in q.iter_mut() {
         transform.rotation = Quat::from_rotation_z(
             (PI / 180.0)
                 * match direction {
@@ -194,16 +216,23 @@ fn main() {
                 .with_collection::<DragonAssets>(),
         )
         .add_plugins(DefaultPlugins)
+        .add_plugin(grid::GridPlugin)
         .add_enter_system(State::InLevel, load_level)
         .add_stage_before(
-            CoreStage::Update,
-            "InputHandling",
-            SystemStage::parallel().with_system(dragon_movement.run_in_state(State::InLevel)),
-        )
-        .add_stage_after(
-            "InputHandling",
+            grid::GridStage,
             "EntityProcessing",
-            SystemStage::parallel().with_system(position_dragons.run_in_state(State::InLevel)),
+            SystemStage::parallel().with_system(rotate_dragons.run_in_state(State::InLevel)),
+        )
+        .add_stage_before(
+            "EntityProcessing",
+            "InputHandling",
+            SystemStage::parallel().with_system_set(
+                ConditionSet::new()
+                    .run_in_state(State::InLevel)
+                    .with_system(grid_resizing)
+                    .with_system(dragon_movement)
+                    .into(),
+            ),
         )
         .run()
 }
