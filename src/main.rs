@@ -9,8 +9,16 @@ use bevy::{
 };
 use bevy_asset_loader::prelude::*;
 use iyes_loopless::prelude::*;
+use leafwing_input_manager::prelude::*;
 
 mod grid;
+
+#[derive(Actionlike, Clone, Copy, Hash, Debug)]
+enum Action {
+    Forwards,
+    TurnLeft,
+    TurnRight,
+}
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 enum State {
@@ -31,13 +39,6 @@ enum Direction {
     Down,
     Left,
     Right,
-}
-
-#[derive(Copy, Clone)]
-enum Action {
-    Forwards,
-    TurnLeft,
-    TurnRight,
 }
 
 #[derive(Component)]
@@ -78,6 +79,17 @@ fn load_level(mut commands: Commands, assets: Res<DragonAssets>) {
             texture_atlas: assets.atlas.clone(),
             ..Default::default()
         })
+        .insert_bundle(InputManagerBundle::<Action> {
+            input_map: InputMap::new([
+                (KeyCode::W, Action::Forwards),
+                (KeyCode::Up, Action::Forwards),
+                (KeyCode::A, Action::TurnLeft),
+                (KeyCode::D, Action::TurnRight),
+                (KeyCode::Left, Action::TurnLeft),
+                (KeyCode::Right, Action::TurnRight),
+            ]),
+            ..Default::default()
+        })
         .insert(DragonHead)
         .insert(Direction::Right)
         .insert(grid::GridPosition { x: 0, y: 3 });
@@ -85,6 +97,17 @@ fn load_level(mut commands: Commands, assets: Res<DragonAssets>) {
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: assets.atlas.clone(),
+            ..Default::default()
+        })
+        .insert_bundle(InputManagerBundle::<Action> {
+            input_map: InputMap::new([
+                (KeyCode::W, Action::Forwards),
+                (KeyCode::Up, Action::Forwards),
+                (KeyCode::A, Action::TurnLeft),
+                (KeyCode::D, Action::TurnRight),
+                (KeyCode::Left, Action::TurnLeft),
+                (KeyCode::Right, Action::TurnRight),
+            ]),
             ..Default::default()
         })
         .insert(DragonHead)
@@ -96,6 +119,17 @@ fn load_level(mut commands: Commands, assets: Res<DragonAssets>) {
             texture_atlas: assets.atlas.clone(),
             ..Default::default()
         })
+        .insert_bundle(InputManagerBundle::<Action> {
+            input_map: InputMap::new([
+                (KeyCode::W, Action::Forwards),
+                (KeyCode::Up, Action::Forwards),
+                (KeyCode::A, Action::TurnLeft),
+                (KeyCode::D, Action::TurnRight),
+                (KeyCode::Left, Action::TurnLeft),
+                (KeyCode::Right, Action::TurnRight),
+            ]),
+            ..Default::default()
+        })
         .insert(DragonHead)
         .insert(Direction::Up)
         .insert(grid::GridPosition { x: 7, y: 10 });
@@ -105,57 +139,45 @@ fn load_level(mut commands: Commands, assets: Res<DragonAssets>) {
             texture_atlas: assets.atlas.clone(),
             ..Default::default()
         })
+        .insert_bundle(InputManagerBundle::<Action> {
+            input_map: InputMap::new([
+                (KeyCode::W, Action::Forwards),
+                (KeyCode::Up, Action::Forwards),
+                (KeyCode::A, Action::TurnLeft),
+                (KeyCode::D, Action::TurnRight),
+                (KeyCode::Left, Action::TurnLeft),
+                (KeyCode::Right, Action::TurnRight),
+            ]),
+            ..Default::default()
+        })
         .insert(DragonHead)
         .insert(Direction::Down)
         .insert(grid::GridPosition { x: 3, y: 0 });
 }
 
-fn grid_resizing(input: Res<Input<KeyCode>>, mut grid: Query<&mut grid::GridSize>) {
-    let size = if input.just_released(KeyCode::Key1) {
-        1
-    } else if input.just_released(KeyCode::Key2) {
-        2
-    } else if input.just_released(KeyCode::Key3) {
-        3
-    } else if input.just_released(KeyCode::Key4) {
-        4
-    } else if input.just_released(KeyCode::Key5) {
-        5
-    } else if input.just_released(KeyCode::Key6) {
-        6
-    } else if input.just_released(KeyCode::Key7) {
-        7
-    } else if input.just_released(KeyCode::Key8) {
-        8
-    } else if input.just_released(KeyCode::Key9) {
-        9
-    } else if input.just_released(KeyCode::Key0) {
-        10
-    } else {
-        return;
-    };
-
-    let mut grid_size = grid.single_mut();
-    *grid_size = grid::GridSize::new_square(size);
-}
-
 fn dragon_movement(
     mut commands: Commands,
     assets: Res<DragonAssets>,
-    input: Res<Input<KeyCode>>,
-    mut dragons: Query<(&mut Direction, &mut grid::GridPosition), With<DragonHead>>,
+    mut dragons: Query<
+        (
+            &ActionState<Action>,
+            &mut Direction,
+            &mut grid::GridPosition,
+        ),
+        With<DragonHead>,
+    >,
 ) {
-    let action = if input.just_released(KeyCode::W) || input.just_released(KeyCode::Up) {
-        Action::Forwards
-    } else if input.just_released(KeyCode::A) || input.just_released(KeyCode::Left) {
-        Action::TurnLeft
-    } else if input.just_released(KeyCode::D) || input.just_released(KeyCode::Right) {
-        Action::TurnRight
-    } else {
-        return;
-    };
+    for (action, mut direction, mut position) in dragons.iter_mut() {
+        let action = if action.just_released(Action::Forwards) {
+            Action::Forwards
+        } else if action.just_released(Action::TurnLeft) {
+            Action::TurnLeft
+        } else if action.just_released(Action::TurnRight) {
+            Action::TurnRight
+        } else {
+            continue;
+        };
 
-    for (mut direction, mut position) in dragons.iter_mut() {
         commands
             .spawn_bundle(SpriteSheetBundle {
                 sprite: TextureAtlasSprite {
@@ -216,6 +238,7 @@ fn main() {
                 .with_collection::<DragonAssets>(),
         )
         .add_plugins(DefaultPlugins)
+        .add_plugin(InputManagerPlugin::<Action>::default())
         .add_plugin(grid::GridPlugin)
         .add_enter_system(State::InLevel, load_level)
         .add_stage_before(
@@ -229,7 +252,6 @@ fn main() {
             SystemStage::parallel().with_system_set(
                 ConditionSet::new()
                     .run_in_state(State::InLevel)
-                    .with_system(grid_resizing)
                     .with_system(dragon_movement)
                     .into(),
             ),
