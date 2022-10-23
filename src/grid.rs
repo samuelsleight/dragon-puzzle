@@ -49,7 +49,7 @@ fn convert_coordinate(grid_size: u32, grid_scale: f32, position: i32) -> f32 {
 
 fn align_to_grid(
     grid_query: Query<(&GridSize, &GridScale)>,
-    mut entity_query: Query<(&GridPosition, &mut Transform)>,
+    mut entity_query: Query<(&GridPosition, &mut Transform), Changed<GridPosition>>,
 ) {
     let (size, scale) = match grid_query.get_single() {
         Ok(result) => result,
