@@ -33,7 +33,7 @@ enum State {
     InLevel,
 }
 
-#[derive(serde::Deserialize, Component, Copy, Clone, Debug)]
+#[derive(serde::Deserialize, Component, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum Direction {
     Up,
     Down,
@@ -66,6 +66,15 @@ impl Direction {
             Direction::Down => (0, -1),
             Direction::Left => (-1, 0),
             Direction::Right => (1, 0),
+        }
+    }
+
+    fn opposite(&self) -> Self {
+        match *self {
+            Direction::Up => Direction::Down,
+            Direction::Down => Direction::Up,
+            Direction::Left => Direction::Right,
+            Direction::Right => Direction::Left,
         }
     }
 }

@@ -1,24 +1,26 @@
 use bevy::prelude::*;
 
+use crate::Direction;
+
 #[derive(Bundle, Clone, Copy)]
 pub struct GridBundle {
     pub size: GridSize,
     pub scale: GridScale,
 }
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct GridSize {
     pub width: u32,
     pub height: u32,
 }
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, Debug)]
 pub struct GridScale {
     pub width: f32,
     pub height: f32,
 }
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct GridPosition {
     pub x: i32,
     pub y: i32,
@@ -27,6 +29,17 @@ pub struct GridPosition {
 pub struct GridPlugin;
 
 pub struct GridStage;
+
+impl GridPosition {
+    pub fn apply_direction(&self, direction: Direction) -> Self {
+        let (dx, dy) = direction.delta();
+
+        Self {
+            x: self.x + dx,
+            y: self.y + dy,
+        }
+    }
+}
 
 fn convert_coordinate(grid_size: u32, grid_scale: f32, position: i32) -> f32 {
     let max_pixels = grid_size as f32 * grid_scale;

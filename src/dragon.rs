@@ -87,16 +87,13 @@ fn dragon_movement(
             };
 
             let proposed_direction = direction.process_action(action);
-            let (dx, dy) = proposed_direction.delta();
-
-            let proposed_x = position.x + dx;
-            let proposed_y = position.y + dy;
+            let proposed_position = position.apply_direction(proposed_direction);
 
             if let Some(max) = movement_max {
-                if proposed_x < 0
-                    || proposed_x >= max.width as i32
-                    || proposed_y < 0
-                    || proposed_y >= max.height as i32
+                if proposed_position.x < 0
+                    || proposed_position.x >= max.width as i32
+                    || proposed_position.y < 0
+                    || proposed_position.y >= max.height as i32
                 {
                     continue;
                 }
@@ -116,8 +113,7 @@ fn dragon_movement(
                 .insert(*position);
 
             *direction = proposed_direction;
-            position.x = proposed_x;
-            position.y = proposed_y;
+            *position = proposed_position;
         }
     }
 }
@@ -136,6 +132,19 @@ fn rotate_dragons(mut q: Query<(&Direction, &mut Transform)>) {
     }
 }
 
+fn check_win(
+    mut commands: Commands,
+    dragons: Query<(&grid::GridPosition, &Direction), With<DragonHead>>,
+) {
+    let dragons_opposite = dragons
+        .iter_combinations::<2>()
+        .any(|[a, b]| a.0.apply_direction(*a.1) == *b.0 && a.1.opposite() == *b.1);
+
+    if dragons_opposite {
+        commands.insert_resource(level::WinTimer(Timer::from_seconds(0.5, false)));
+    }
+}
+
 impl<State: StateData> AssetProvider<State> for DragonPlugin {
     fn provide(&self, state: LoadingState<State>) -> LoadingState<State> {
         state.with_collection::<DragonAssets>()
@@ -145,25 +154,33 @@ impl<State: StateData> AssetProvider<State> for DragonPlugin {
 impl Plugin for DragonPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SpawnDragon>()
-            .add_system(
-                spawn_dragon
-                    .run_on_event::<SpawnDragon>()
-                    .run_in_state(State::LevelLoading),
-            )
             .add_stage_before(
                 grid::GridStage,
                 "EntityProcessing",
-                SystemStage::parallel().with_system(rotate_dragons.run_in_state(State::InLevel)),
+                SystemStage::parallel()
+                    .with_system(rotate_dragons)
+                    .with_system(
+                        check_win
+                            .run_unless_resource_exists::<level::WinTimer>()
+                            .run_in_state(State::InLevel),
+                    ),
             )
             .add_stage_before(
                 "EntityProcessing",
                 "InputHandling",
-                SystemStage::parallel().with_system_set(
-                    ConditionSet::new()
-                        .run_in_state(State::InLevel)
-                        .with_system(dragon_movement)
-                        .into(),
-                ),
+                SystemStage::parallel()
+                    .with_system(
+                        spawn_dragon
+                            .run_on_event::<SpawnDragon>()
+                            .run_if_resource_exists::<level::LoadTaskCount>()
+                            .run_in_state(State::LevelLoading),
+                    )
+                    .with_system_set(
+                        ConditionSet::new()
+                            .run_in_state(State::InLevel)
+                            .with_system(dragon_movement)
+                            .into(),
+                    ),
             );
     }
 }

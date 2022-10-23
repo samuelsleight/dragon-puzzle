@@ -11,6 +11,9 @@ pub struct LevelPlugin;
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct LoadTaskCount(pub usize);
 
+#[derive(Clone, Debug)]
+pub struct WinTimer(pub Timer);
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct CurrentLevel(pub usize);
 
@@ -113,11 +116,21 @@ fn switch_level(mut commands: Commands, query: Query<&ActionState<Action>, With<
     }
 }
 
+fn check_win_timer(mut commands: Commands, time: Res<Time>, mut timer: ResMut<WinTimer>) {
+    timer.0.tick(time.delta());
+
+    if timer.0.just_finished() {
+        commands.insert_resource(NextState(State::LevelLoading));
+    }
+}
+
 fn unload_level(
     mut commands: Commands,
     mut level_query: Query<Entity, With<dragon::DragonComponent>>,
     mut dragon_query: Query<Entity, With<LevelComponent>>,
 ) {
+    commands.remove_resource::<WinTimer>();
+
     for dragon in dragon_query.iter_mut() {
         commands.entity(dragon).despawn();
     }
@@ -144,6 +157,11 @@ impl Plugin for LevelPlugin {
                     .run_if_resource_equals(LoadTaskCount(0)),
             )
             .add_system(switch_level.run_in_state(State::InLevel))
+            .add_system(
+                check_win_timer
+                    .run_if_resource_exists::<WinTimer>()
+                    .run_in_state(State::InLevel),
+            )
             .insert_resource(CurrentLevel(0));
     }
 }
