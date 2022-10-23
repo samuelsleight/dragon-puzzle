@@ -93,7 +93,8 @@ impl StageLabel for GridStage {
 
 impl Plugin for GridPlugin {
     fn build(&self, app: &mut App) {
-        app.add_stage(
+        app.add_stage_before(
+            CoreStage::PostUpdate,
             GridStage,
             SystemStage::parallel().with_system(align_to_grid),
         );
