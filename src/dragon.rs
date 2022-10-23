@@ -67,6 +67,7 @@ fn spawn_dragon(
 fn dragon_movement(
     mut commands: Commands,
     assets: Res<DragonAssets>,
+    grid_query: Query<&grid::GridSize>,
     mut dragons: Query<
         (
             &ActionState<Action>,
@@ -76,12 +77,30 @@ fn dragon_movement(
         With<DragonHead>,
     >,
 ) {
+    let movement_max = grid_query.get_single().ok();
+
     for (action, mut direction, mut position) in dragons.iter_mut() {
         for action in action.get_just_released() {
             let action = match action.movement() {
                 Some(action) => action,
                 _ => continue,
             };
+
+            let proposed_direction = direction.process_action(action);
+            let (dx, dy) = proposed_direction.delta();
+
+            let proposed_x = position.x + dx;
+            let proposed_y = position.y + dy;
+
+            if let Some(max) = movement_max {
+                if proposed_x < 0
+                    || proposed_x >= max.width as i32
+                    || proposed_y < 0
+                    || proposed_y >= max.height as i32
+                {
+                    continue;
+                }
+            }
 
             commands
                 .spawn_bundle(SpriteSheetBundle {
@@ -96,15 +115,9 @@ fn dragon_movement(
                 .insert(*direction)
                 .insert(*position);
 
-            let (dx, dy) = match direction.process_action(action) {
-                Direction::Up => (0, 1),
-                Direction::Down => (0, -1),
-                Direction::Left => (-1, 0),
-                Direction::Right => (1, 0),
-            };
-
-            position.x += dx;
-            position.y += dy;
+            *direction = proposed_direction;
+            position.x = proposed_x;
+            position.y = proposed_y;
         }
     }
 }

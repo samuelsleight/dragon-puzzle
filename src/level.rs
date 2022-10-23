@@ -66,6 +66,28 @@ fn load_level(
         })
         .insert(LevelComponent);
 
+    for x in 0..level.size[0] {
+        for y in 0..level.size[1] {
+            commands
+                .spawn_bundle(SpriteBundle {
+                    sprite: Sprite {
+                        color: Color::rgba(0.2, 0.2, 0.2, 0.6),
+                        ..Default::default()
+                    },
+                    transform: Transform {
+                        scale: Vec3::new(30.0, 30.0, 30.0),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                })
+                .insert(LevelComponent)
+                .insert(grid::GridPosition {
+                    x: x as i32,
+                    y: y as i32,
+                });
+        }
+    }
+
     let event_count = level.dragons.len();
     commands.insert_resource(LoadTaskCount(event_count));
 

@@ -31,7 +31,7 @@ pub struct GridStage;
 fn convert_coordinate(grid_size: u32, grid_scale: f32, position: i32) -> f32 {
     let max_pixels = grid_size as f32 * grid_scale;
     let this_pixels = position as f32 * grid_scale;
-    0.0 - (max_pixels / 2.0) + this_pixels
+    (0.0 - (max_pixels / 2.0) + this_pixels) + (grid_scale / 2.0)
 }
 
 fn align_to_grid(
