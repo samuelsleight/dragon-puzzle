@@ -42,6 +42,9 @@ struct LevelSwitcher;
 #[derive(Component)]
 struct LevelComponent;
 
+#[derive(Component)]
+pub struct Blocker;
+
 fn load_level(
     mut commands: Commands,
     mut dragon_events: EventWriter<dragon::SpawnDragon>,
@@ -90,6 +93,41 @@ fn load_level(
                 });
         }
     }
+
+    commands
+        .spawn_bundle(SpriteBundle {
+            sprite: Sprite {
+                color: Color::rgba(0.7, 0.5, 0.5, 0.8),
+                ..Default::default()
+            },
+            transform: Transform {
+                scale: Vec3::new(31.0, 31.0, 31.0),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .insert(LevelComponent)
+        .insert(Blocker)
+        .insert(grid::GridPosition { x: 1, y: 1 });
+
+    commands
+        .spawn_bundle(SpriteBundle {
+            sprite: Sprite {
+                color: Color::rgba(0.7, 0.5, 0.5, 0.8),
+                ..Default::default()
+            },
+            transform: Transform {
+                scale: Vec3::new(31.0, 31.0, 31.0),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .insert(LevelComponent)
+        .insert(Blocker)
+        .insert(grid::GridPosition {
+            x: level.size[0] as i32 - 2,
+            y: 1,
+        });
 
     let event_count = level.dragons.len();
     commands.insert_resource(LoadTaskCount(event_count));

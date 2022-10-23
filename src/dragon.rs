@@ -68,18 +68,22 @@ fn dragon_movement(
     mut commands: Commands,
     assets: Res<DragonAssets>,
     grid_query: Query<&grid::GridSize>,
-    mut dragons: Query<
-        (
-            &ActionState<Action>,
-            &mut Direction,
-            &mut grid::GridPosition,
-        ),
-        With<DragonHead>,
-    >,
+    mut set: ParamSet<(
+        Query<
+            (
+                &ActionState<Action>,
+                &mut Direction,
+                &mut grid::GridPosition,
+            ),
+            With<DragonHead>,
+        >,
+        Query<&grid::GridPosition, With<level::Blocker>>,
+    )>,
 ) {
     let movement_max = grid_query.get_single().ok();
+    let blockers = set.p1().iter().cloned().collect::<Vec<_>>();
 
-    for (action, mut direction, mut position) in dragons.iter_mut() {
+    for (action, mut direction, mut position) in set.p0().iter_mut() {
         for action in action.get_just_released() {
             let action = match action.movement() {
                 Some(action) => action,
@@ -97,6 +101,10 @@ fn dragon_movement(
                 {
                     continue;
                 }
+            }
+
+            if blockers.iter().any(|blocker| *blocker == proposed_position) {
+                continue;
             }
 
             commands
