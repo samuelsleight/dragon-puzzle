@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
-use crate::{level, Direction};
+use crate::{
+    level::{self, LevelConfig},
+    loadable::{AppLoadableExt, Loadable},
+    Direction,
+};
 
 #[derive(Bundle, Clone, Copy)]
 pub struct GridBundle {
@@ -30,8 +34,8 @@ pub struct GridPlugin;
 
 pub struct GridStage;
 
-impl GridBundle {
-    pub fn from_level(world: &mut World, level: &level::LevelConfig) {
+impl Loadable<LevelConfig> for GridBundle {
+    fn from_scene(world: &mut World, level: &LevelConfig) {
         world
             .spawn()
             .insert_bundle(GridBundle {
@@ -105,7 +109,7 @@ impl StageLabel for GridStage {
 
 impl Plugin for GridPlugin {
     fn build(&self, app: &mut App) {
-        app.add_stage_before(
+        app.register_loadable::<GridBundle>().add_stage_before(
             CoreStage::PostUpdate,
             GridStage,
             SystemStage::parallel().with_system(align_to_grid),

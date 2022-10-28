@@ -11,6 +11,7 @@ mod action;
 mod dragon;
 mod grid;
 mod level;
+mod loadable;
 
 pub trait AssetProvider<State: StateData> {
     fn provide(&self, state: LoadingState<State>) -> LoadingState<State>;

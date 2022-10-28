@@ -9,15 +9,9 @@ use crate::{
     action::Action,
     grid,
     level::{self, LevelConfig},
+    loadable::{AppLoadableExt, Loadable},
     AssetProvider, Direction, State,
 };
-
-#[derive(Clone, Debug)]
-pub struct SpawnDragon {
-    pub x: i32,
-    pub y: i32,
-    pub direction: Direction,
-}
 
 #[derive(Component)]
 pub struct DragonHead;
@@ -73,8 +67,10 @@ impl DragonBundle {
             },
         }
     }
+}
 
-    pub fn from_level(world: &mut World, level: &LevelConfig) {
+impl Loadable<LevelConfig> for DragonBundle {
+    fn from_scene(world: &mut World, level: &LevelConfig) {
         world.resource_scope(|world, assets: Mut<DragonAssets>| {
             let atlas = assets.atlas.clone();
 
@@ -189,7 +185,7 @@ impl<State: StateData> AssetProvider<State> for DragonPlugin {
 
 impl Plugin for DragonPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnDragon>()
+        app.register_loadable::<DragonBundle>()
             .add_stage_before(
                 grid::GridStage,
                 "EntityProcessing",

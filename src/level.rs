@@ -4,7 +4,7 @@ use bevy_common_assets::json::JsonAssetPlugin;
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::{action::Action, dragon, grid, AssetProvider, Direction, State};
+use crate::{action::Action, grid, loadable, AssetProvider, Direction, State};
 
 pub struct LevelPlugin;
 
@@ -54,6 +54,8 @@ fn load_level(world: &mut World) {
             let handle = &config.levels[index];
             let level = assets.get(handle).unwrap();
 
+            loadable::load_loadables(world, level);
+
             world
                 .spawn()
                 .insert_bundle(InputManagerBundle::<Action> {
@@ -62,8 +64,6 @@ fn load_level(world: &mut World) {
                 })
                 .insert(LevelComponent)
                 .insert(LevelSwitcher);
-
-            grid::GridBundle::from_level(world, level);
 
             for x in 0..level.size[0] {
                 for y in 0..level.size[1] {
@@ -124,8 +124,6 @@ fn load_level(world: &mut World) {
                     x: level.size[0] as i32 - 2,
                     y: 1,
                 });
-
-            dragon::DragonBundle::from_level(world, level);
         });
     });
 
