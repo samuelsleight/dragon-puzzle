@@ -5,7 +5,12 @@ use bevy_asset_loader::prelude::{LoadingState, *};
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::{action::Action, grid, level, AssetProvider, Direction, State};
+use crate::{
+    action::Action,
+    grid,
+    level::{self, LevelConfig},
+    AssetProvider, Direction, State,
+};
 
 #[derive(Clone, Debug)]
 pub struct SpawnDragon {
@@ -17,9 +22,6 @@ pub struct SpawnDragon {
 #[derive(Component)]
 pub struct DragonHead;
 
-#[derive(Component)]
-pub struct DragonComponent;
-
 pub struct DragonPlugin;
 
 #[derive(AssetCollection)]
@@ -29,19 +31,36 @@ struct DragonAssets {
     atlas: Handle<TextureAtlas>,
 }
 
-fn spawn_dragon(
-    mut commands: Commands,
-    mut events: EventReader<SpawnDragon>,
-    mut task_count: ResMut<level::LoadTaskCount>,
-    assets: Res<DragonAssets>,
-) {
-    for event in events.iter() {
-        commands
-            .spawn_bundle(SpriteSheetBundle {
-                texture_atlas: assets.atlas.clone(),
+#[derive(Bundle)]
+pub struct DragonBundle {
+    head: DragonHead,
+    component: level::LevelComponent,
+    direction: Direction,
+    position: grid::GridPosition,
+
+    #[bundle]
+    sprite_sheet: SpriteSheetBundle,
+
+    #[bundle]
+    input_manager: InputManagerBundle<Action>,
+}
+
+impl DragonBundle {
+    fn new(
+        direction: Direction,
+        position: grid::GridPosition,
+        atlas: Handle<TextureAtlas>,
+    ) -> Self {
+        Self {
+            head: DragonHead,
+            component: level::LevelComponent,
+            direction,
+            position,
+            sprite_sheet: SpriteSheetBundle {
+                texture_atlas: atlas,
                 ..Default::default()
-            })
-            .insert_bundle(InputManagerBundle::<Action> {
+            },
+            input_manager: InputManagerBundle::<Action> {
                 input_map: InputMap::new([
                     (KeyCode::W, Action::MovementForwards),
                     (KeyCode::Up, Action::MovementForwards),
@@ -51,16 +70,25 @@ fn spawn_dragon(
                     (KeyCode::Right, Action::MovementTurnRight),
                 ]),
                 ..Default::default()
-            })
-            .insert(DragonComponent)
-            .insert(DragonHead)
-            .insert(event.direction)
-            .insert(grid::GridPosition {
-                x: event.x,
-                y: event.y,
-            });
+            },
+        }
+    }
 
-        task_count.as_mut().0 -= 1;
+    pub fn from_level(world: &mut World, level: &LevelConfig) {
+        world.resource_scope(|world, assets: Mut<DragonAssets>| {
+            let atlas = assets.atlas.clone();
+
+            world.spawn_batch(level.dragons.iter().map(move |dragon| {
+                DragonBundle::new(
+                    dragon.direction,
+                    grid::GridPosition {
+                        x: dragon.position[0],
+                        y: dragon.position[1],
+                    },
+                    atlas.clone(),
+                )
+            }));
+        });
     }
 }
 
@@ -116,7 +144,7 @@ fn dragon_movement(
                     texture_atlas: assets.atlas.clone(),
                     ..Default::default()
                 })
-                .insert(DragonComponent)
+                .insert(level::LevelComponent)
                 .insert(*direction)
                 .insert(*position);
 
@@ -176,19 +204,12 @@ impl Plugin for DragonPlugin {
             .add_stage_before(
                 "EntityProcessing",
                 "InputHandling",
-                SystemStage::parallel()
-                    .with_system(
-                        spawn_dragon
-                            .run_on_event::<SpawnDragon>()
-                            .run_if_resource_exists::<level::LoadTaskCount>()
-                            .run_in_state(State::LevelLoading),
-                    )
-                    .with_system_set(
-                        ConditionSet::new()
-                            .run_in_state(State::InLevel)
-                            .with_system(dragon_movement)
-                            .into(),
-                    ),
+                SystemStage::parallel().with_system_set(
+                    ConditionSet::new()
+                        .run_in_state(State::InLevel)
+                        .with_system(dragon_movement)
+                        .into(),
+                ),
             );
     }
 }

@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 
-use crate::Direction;
+use crate::{level, Direction};
 
 #[derive(Bundle, Clone, Copy)]
 pub struct GridBundle {
-    pub size: GridSize,
-    pub scale: GridScale,
+    size: GridSize,
+    scale: GridScale,
 }
 
 #[derive(Component, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
@@ -29,6 +29,18 @@ pub struct GridPosition {
 pub struct GridPlugin;
 
 pub struct GridStage;
+
+impl GridBundle {
+    pub fn from_level(world: &mut World, level: &level::LevelConfig) {
+        world
+            .spawn()
+            .insert_bundle(GridBundle {
+                size: GridSize::new(level.size[0], level.size[1]),
+                scale: GridScale::new_square(32.0),
+            })
+            .insert(level::LevelComponent);
+    }
+}
 
 impl GridPosition {
     pub fn apply_direction(&self, direction: Direction) -> Self {
