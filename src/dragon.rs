@@ -10,7 +10,7 @@ use crate::{
     grid,
     level::{self, LevelConfig},
     util::prelude::*,
-    Direction, State,
+    wall, Direction, State,
 };
 
 #[derive(Component)]
@@ -101,7 +101,7 @@ fn dragon_movement(
             ),
             With<DragonHead>,
         >,
-        Query<&grid::GridPosition, With<level::Blocker>>,
+        Query<&grid::GridPosition, With<wall::Blocker>>,
     )>,
 ) {
     let movement_max = grid_query.get_single().ok();

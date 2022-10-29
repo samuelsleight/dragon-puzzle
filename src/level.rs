@@ -6,7 +6,6 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{
     action::Action,
-    grid,
     util::{self, prelude::*},
     Direction, State,
 };
@@ -44,9 +43,6 @@ struct LevelSwitcher;
 #[derive(Component)]
 pub struct LevelComponent;
 
-#[derive(Component)]
-pub struct Blocker;
-
 fn load_level(world: &mut World) {
     world.resource_scope(|world, config: Mut<LevelAssets>| {
         let index = world.resource_scope(|_, mut current: Mut<CurrentLevel>| {
@@ -69,43 +65,6 @@ fn load_level(world: &mut World) {
                 })
                 .insert(LevelComponent)
                 .insert(LevelSwitcher);
-
-            world
-                .spawn()
-                .insert_bundle(SpriteBundle {
-                    sprite: Sprite {
-                        color: Color::rgba(0.7, 0.5, 0.5, 0.8),
-                        ..Default::default()
-                    },
-                    transform: Transform {
-                        scale: Vec3::new(31.0, 31.0, 31.0),
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                })
-                .insert(LevelComponent)
-                .insert(Blocker)
-                .insert(grid::GridPosition { x: 1, y: 1 });
-
-            world
-                .spawn()
-                .insert_bundle(SpriteBundle {
-                    sprite: Sprite {
-                        color: Color::rgba(0.7, 0.5, 0.5, 0.8),
-                        ..Default::default()
-                    },
-                    transform: Transform {
-                        scale: Vec3::new(31.0, 31.0, 31.0),
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                })
-                .insert(LevelComponent)
-                .insert(Blocker)
-                .insert(grid::GridPosition {
-                    x: level.size[0] as i32 - 2,
-                    y: 1,
-                });
         });
     });
 

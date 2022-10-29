@@ -12,6 +12,7 @@ mod dragon;
 mod grid;
 mod level;
 mod util;
+mod wall;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 enum State {
@@ -97,6 +98,7 @@ fn main() {
         .add_plugin(level::LevelPlugin)
         .add_plugin(grid::GridPlugin)
         .add_plugin(background::BackgroundPlugin)
+        .add_plugin(wall::WallPlugin)
         .add_plugin(dragon::DragonPlugin)
         .add_exit_system(State::AssetLoading, spawn_camera)
         .run();
