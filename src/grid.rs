@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     level::{self, LevelConfig},
-    loadable::{AppLoadableExt, Loadable},
+    util::prelude::*,
     Direction,
 };
 

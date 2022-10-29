@@ -4,7 +4,12 @@ use bevy_common_assets::json::JsonAssetPlugin;
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::{action::Action, grid, loadable, AssetProvider, Direction, State};
+use crate::{
+    action::Action,
+    grid,
+    util::{self, prelude::*},
+    Direction, State,
+};
 
 pub struct LevelPlugin;
 
@@ -54,7 +59,7 @@ fn load_level(world: &mut World) {
             let handle = &config.levels[index];
             let level = assets.get(handle).unwrap();
 
-            loadable::load_loadables(world, level);
+            util::load_loadables(world, level);
 
             world
                 .spawn()

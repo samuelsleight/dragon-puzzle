@@ -1,31 +1,16 @@
 use action::{Action, MovementAction};
-use bevy::{
-    ecs::schedule::StateData, prelude::*, render::texture::ImageSettings, window::WindowDescriptor,
-    DefaultPlugins,
-};
+use bevy::{prelude::*, render::texture::ImageSettings, window::WindowDescriptor, DefaultPlugins};
 use bevy_asset_loader::prelude::*;
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
+
+use crate::util::prelude::*;
 
 mod action;
 mod dragon;
 mod grid;
 mod level;
-mod loadable;
-
-pub trait AssetProvider<State: StateData> {
-    fn provide(&self, state: LoadingState<State>) -> LoadingState<State>;
-}
-
-pub trait LoadingStateExt<State: StateData> {
-    fn with_asset_provider<Provider: AssetProvider<State>>(self, provider: Provider) -> Self;
-}
-
-impl<State: StateData> LoadingStateExt<State> for LoadingState<State> {
-    fn with_asset_provider<Provider: AssetProvider<State>>(self, provider: Provider) -> Self {
-        provider.provide(self)
-    }
-}
+mod util;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 enum State {

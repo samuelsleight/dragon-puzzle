@@ -9,8 +9,8 @@ use crate::{
     action::Action,
     grid,
     level::{self, LevelConfig},
-    loadable::{AppLoadableExt, Loadable},
-    AssetProvider, Direction, State,
+    util::prelude::*,
+    Direction, State,
 };
 
 #[derive(Component)]

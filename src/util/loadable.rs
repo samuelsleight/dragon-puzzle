@@ -1,6 +1,6 @@
 use bevy::prelude::{App, Mut, World};
 
-pub struct Loadables<Scene>(pub Vec<fn(&mut World, &Scene)>);
+struct Loadables<Scene>(pub Vec<fn(&mut World, &Scene)>);
 
 pub trait Loadable<Scene> {
     fn from_scene(world: &mut World, scene: &Scene);
