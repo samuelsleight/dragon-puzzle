@@ -70,29 +70,6 @@ fn load_level(world: &mut World) {
                 .insert(LevelComponent)
                 .insert(LevelSwitcher);
 
-            for x in 0..level.size[0] {
-                for y in 0..level.size[1] {
-                    world
-                        .spawn()
-                        .insert_bundle(SpriteBundle {
-                            sprite: Sprite {
-                                color: Color::rgba(0.2, 0.2, 0.2, 0.6),
-                                ..Default::default()
-                            },
-                            transform: Transform {
-                                scale: Vec3::new(30.0, 30.0, 30.0),
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        })
-                        .insert(LevelComponent)
-                        .insert(grid::GridPosition {
-                            x: x as i32,
-                            y: y as i32,
-                        });
-                }
-            }
-
             world
                 .spawn()
                 .insert_bundle(SpriteBundle {

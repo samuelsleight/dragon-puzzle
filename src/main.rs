@@ -7,6 +7,7 @@ use leafwing_input_manager::prelude::*;
 use crate::util::prelude::*;
 
 mod action;
+mod background;
 mod dragon;
 mod grid;
 mod level;
@@ -93,8 +94,9 @@ fn main() {
         )
         .add_plugins(DefaultPlugins)
         .add_plugin(InputManagerPlugin::<Action>::default())
-        .add_plugin(grid::GridPlugin)
         .add_plugin(level::LevelPlugin)
+        .add_plugin(grid::GridPlugin)
+        .add_plugin(background::BackgroundPlugin)
         .add_plugin(dragon::DragonPlugin)
         .add_exit_system(State::AssetLoading, spawn_camera)
         .run();
