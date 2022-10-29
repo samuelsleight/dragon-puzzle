@@ -29,16 +29,16 @@ pub enum Direction {
 }
 
 impl Direction {
-    fn process_action(&self, action: MovementAction) -> Self {
+    fn process_action(self, action: MovementAction) -> Self {
         match action {
-            MovementAction::Forwards => *self,
-            MovementAction::TurnLeft => match *self {
+            MovementAction::Forwards => self,
+            MovementAction::TurnLeft => match self {
                 Direction::Up => Direction::Left,
                 Direction::Down => Direction::Right,
                 Direction::Left => Direction::Down,
                 Direction::Right => Direction::Up,
             },
-            MovementAction::TurnRight => match *self {
+            MovementAction::TurnRight => match self {
                 Direction::Up => Direction::Right,
                 Direction::Down => Direction::Left,
                 Direction::Left => Direction::Up,
@@ -47,8 +47,8 @@ impl Direction {
         }
     }
 
-    fn delta(&self) -> (i32, i32) {
-        match *self {
+    fn delta(self) -> (i32, i32) {
+        match self {
             Direction::Up => (0, 1),
             Direction::Down => (0, -1),
             Direction::Left => (-1, 0),
@@ -56,8 +56,8 @@ impl Direction {
         }
     }
 
-    fn opposite(&self) -> Self {
-        match *self {
+    fn opposite(self) -> Self {
+        match self {
             Direction::Up => Direction::Down,
             Direction::Down => Direction::Up,
             Direction::Left => Direction::Right,
