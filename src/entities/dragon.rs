@@ -10,8 +10,10 @@ use crate::{
     grid,
     level::{self, LevelConfig},
     util::prelude::*,
-    wall, Direction, State,
+    Direction, State,
 };
+
+use super::wall;
 
 #[derive(Component)]
 pub struct DragonHead;

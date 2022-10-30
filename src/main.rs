@@ -7,12 +7,10 @@ use leafwing_input_manager::prelude::*;
 use crate::util::prelude::*;
 
 mod action;
-mod background;
-mod dragon;
+mod entities;
 mod grid;
 mod level;
 mod util;
-mod wall;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 enum State {
@@ -91,15 +89,13 @@ fn main() {
             LoadingState::new(State::AssetLoading)
                 .continue_to_state(State::LevelLoading)
                 .with_asset_provider(level::LevelPlugin)
-                .with_asset_provider(dragon::DragonPlugin),
+                .with_asset_provider(entities::EntityPlugins),
         )
         .add_plugins(DefaultPlugins)
         .add_plugin(InputManagerPlugin::<Action>::default())
         .add_plugin(level::LevelPlugin)
         .add_plugin(grid::GridPlugin)
-        .add_plugin(background::BackgroundPlugin)
-        .add_plugin(wall::WallPlugin)
-        .add_plugin(dragon::DragonPlugin)
+        .add_plugins(entities::EntityPlugins)
         .add_exit_system(State::AssetLoading, spawn_camera)
         .run();
 }
