@@ -24,10 +24,6 @@ impl GridSize {
     pub fn new(width: u32, height: u32) -> Self {
         Self { width, height }
     }
-
-    pub fn new_square(size: u32) -> Self {
-        Self::new(size, size)
-    }
 }
 
 impl GridScale {
