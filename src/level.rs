@@ -43,6 +43,34 @@ struct LevelSwitcher;
 #[derive(Component)]
 pub struct LevelComponent;
 
+#[derive(Bundle)]
+struct LevelSwitcherBundle {
+    switcher: LevelSwitcher,
+    component: LevelComponent,
+
+    #[bundle]
+    input_manager: InputManagerBundle<Action>,
+}
+
+impl LevelSwitcherBundle {
+    fn new() -> Self {
+        LevelSwitcherBundle {
+            switcher: LevelSwitcher,
+            component: LevelComponent,
+            input_manager: InputManagerBundle::<Action> {
+                input_map: InputMap::new([(KeyCode::Space, Action::SwitchLevel)]),
+                ..Default::default()
+            },
+        }
+    }
+}
+
+impl Loadable<LevelConfig> for LevelSwitcherBundle {
+    fn from_scene(world: &mut World, _: &LevelConfig) {
+        world.spawn_batch([LevelSwitcherBundle::new()]);
+    }
+}
+
 fn load_level(world: &mut World) {
     world.resource_scope(|world, config: Mut<LevelAssets>| {
         let index = world.resource_scope(|_, mut current: Mut<CurrentLevel>| {
@@ -56,15 +84,6 @@ fn load_level(world: &mut World) {
             let level = assets.get(handle).unwrap();
 
             util::load_loadables(world, level);
-
-            world
-                .spawn()
-                .insert_bundle(InputManagerBundle::<Action> {
-                    input_map: InputMap::new([(KeyCode::Space, Action::SwitchLevel)]),
-                    ..Default::default()
-                })
-                .insert(LevelComponent)
-                .insert(LevelSwitcher);
         });
     });
 
@@ -106,6 +125,7 @@ impl<State: StateData> AssetProvider<State> for LevelPlugin {
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(JsonAssetPlugin::<LevelConfig>::new(&["level"]))
+            .register_loadable::<LevelSwitcherBundle>()
             .add_enter_system(State::LevelLoading, load_level.exclusive_system())
             .add_exit_system(State::InLevel, unload_level)
             .add_system(switch_level.run_in_state(State::InLevel))
