@@ -6,13 +6,10 @@ use crate::{
     util::prelude::*,
 };
 
-pub struct WallPlugin;
-
-#[derive(Component)]
-pub struct Blocker;
+use super::components::Blocker;
 
 #[derive(Bundle)]
-struct WallBundle {
+pub struct WallBundle {
     component: LevelComponent,
     position: GridPosition,
     blocker: Blocker,
@@ -51,11 +48,5 @@ impl Loadable<LevelConfig> for WallBundle {
                 y: 1,
             }),
         ]);
-    }
-}
-
-impl Plugin for WallPlugin {
-    fn build(&self, app: &mut App) {
-        app.register_loadable::<WallBundle>();
     }
 }
