@@ -6,10 +6,8 @@ use crate::{
     util::prelude::*,
 };
 
-pub struct BackgroundPlugin;
-
 #[derive(Bundle)]
-struct TileBundle {
+pub struct TileBundle {
     component: LevelComponent,
     position: GridPosition,
 
@@ -47,11 +45,5 @@ impl Loadable<LevelConfig> for TileBundle {
                 })
             })
         }));
-    }
-}
-
-impl Plugin for BackgroundPlugin {
-    fn build(&self, app: &mut App) {
-        app.register_loadable::<TileBundle>();
     }
 }
