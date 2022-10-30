@@ -9,7 +9,10 @@ use crate::{
     Direction,
 };
 
-use super::{assets::DragonAssets, components::DragonHead};
+use super::{
+    assets::DragonAssets,
+    components::{DragonHead, Movement},
+};
 
 #[derive(Bundle)]
 pub struct DragonBundle {
@@ -17,6 +20,7 @@ pub struct DragonBundle {
     component: LevelComponent,
     direction: Direction,
     position: GridPosition,
+    movement: Movement,
 
     #[bundle]
     sprite_sheet: SpriteSheetBundle,
@@ -32,6 +36,7 @@ impl DragonBundle {
             component: LevelComponent,
             direction,
             position,
+            movement: Movement::default(),
             sprite_sheet: SpriteSheetBundle {
                 texture_atlas: atlas,
                 ..Default::default()

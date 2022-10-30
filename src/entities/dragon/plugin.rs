@@ -7,7 +7,7 @@ use crate::{grid::GridStage, level::WinTimer, util::prelude::*, State};
 use super::{
     assets::DragonAssets,
     loadable::DragonBundle,
-    systems::{check_win, dragon_movement, rotate_dragons},
+    systems::{check_win, dragon_movement, finish_movement, rotate_dragons},
 };
 
 pub struct DragonPlugin;
@@ -26,6 +26,7 @@ impl Plugin for DragonPlugin {
                 "EntityProcessing",
                 SystemStage::parallel()
                     .with_system(rotate_dragons)
+                    .with_system(finish_movement)
                     .with_system(
                         check_win
                             .run_unless_resource_exists::<WinTimer>()

@@ -11,21 +11,29 @@ use crate::{
     Direction,
 };
 
-use super::{assets::DragonAssets, components::DragonHead};
+use super::{
+    assets::DragonAssets,
+    components::{DragonHead, Movement},
+};
 
 pub fn dragon_movement(
     mut commands: Commands,
     assets: Res<DragonAssets>,
     grid_query: Query<&GridSize>,
-    mut set: ParamSet<(
-        Query<(&ActionState<Action>, &mut Direction, &mut GridPosition), With<DragonHead>>,
-        Query<&GridPosition, With<Blocker>>,
-    )>,
+    blockers_query: Query<&GridPosition, With<Blocker>>,
+    mut dragons_query: Query<
+        (
+            &ActionState<Action>,
+            &GridPosition,
+            &mut Direction,
+            &mut Movement,
+        ),
+        With<DragonHead>,
+    >,
 ) {
     let movement_max = grid_query.get_single().ok();
-    let blockers = set.p1().iter().cloned().collect::<Vec<_>>();
 
-    for (action, mut direction, mut position) in set.p0().iter_mut() {
+    for (action, position, mut direction, mut movement) in dragons_query.iter_mut() {
         for action in action.get_just_released() {
             let action = match action.movement() {
                 Some(action) => action,
@@ -45,7 +53,10 @@ pub fn dragon_movement(
                 }
             }
 
-            if blockers.iter().any(|blocker| *blocker == proposed_position) {
+            if blockers_query
+                .iter()
+                .any(|blocker| *blocker == proposed_position)
+            {
                 continue;
             }
 
@@ -63,7 +74,7 @@ pub fn dragon_movement(
                 .insert(*position);
 
             *direction = proposed_direction;
-            *position = proposed_position;
+            movement.0 = Some(proposed_position);
         }
     }
 }
@@ -79,6 +90,14 @@ pub fn rotate_dragons(mut q: Query<(&Direction, &mut Transform)>) {
                     Direction::Right => 180.0,
                 },
         );
+    }
+}
+
+pub fn finish_movement(mut query: Query<(&mut GridPosition, &mut Movement), Changed<Movement>>) {
+    for (mut position, mut movement) in query.iter_mut() {
+        if let Some(proposed_position) = movement.0.take() {
+            *position = proposed_position;
+        }
     }
 }
 
