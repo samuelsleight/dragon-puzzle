@@ -79,7 +79,7 @@ pub fn dragon_movement(
     }
 }
 
-pub fn rotate_dragons(mut q: Query<(&Direction, &mut Transform)>) {
+pub fn rotate_dragons(mut q: Query<(&Direction, &mut Transform), Changed<Direction>>) {
     for (direction, mut transform) in q.iter_mut() {
         transform.rotation = Quat::from_rotation_z(
             (PI / 180.0)
