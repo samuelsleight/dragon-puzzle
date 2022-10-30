@@ -5,5 +5,5 @@ mod systems;
 
 pub use self::{
     components::{GridPosition, GridScale, GridSize},
-    plugin::{GridPlugin, GridStage},
+    plugin::GridPlugin,
 };

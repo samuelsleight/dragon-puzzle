@@ -3,10 +3,9 @@ use bevy::prelude::*;
 use crate::{
     grid::GridPosition,
     level::{LevelComponent, LevelConfig},
+    movement::Blocker,
     util::prelude::*,
 };
-
-use super::components::Blocker;
 
 #[derive(Bundle)]
 pub struct WallBundle {

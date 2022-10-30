@@ -1,18 +1,14 @@
 use bevy::prelude::*;
-use leafwing_input_manager::prelude::*;
 
 use crate::{
-    action::Action,
     grid::GridPosition,
     level::{LevelComponent, LevelConfig},
+    movement::Movement,
     util::prelude::*,
     Direction,
 };
 
-use super::{
-    assets::DragonAssets,
-    components::{DragonHead, Movement},
-};
+use super::{assets::DragonAssets, components::DragonHead};
 
 #[derive(Bundle)]
 pub struct DragonBundle {
@@ -24,9 +20,6 @@ pub struct DragonBundle {
 
     #[bundle]
     sprite_sheet: SpriteSheetBundle,
-
-    #[bundle]
-    input_manager: InputManagerBundle<Action>,
 }
 
 impl DragonBundle {
@@ -39,17 +32,6 @@ impl DragonBundle {
             movement: Movement::default(),
             sprite_sheet: SpriteSheetBundle {
                 texture_atlas: atlas,
-                ..Default::default()
-            },
-            input_manager: InputManagerBundle::<Action> {
-                input_map: InputMap::new([
-                    (KeyCode::W, Action::MovementForwards),
-                    (KeyCode::Up, Action::MovementForwards),
-                    (KeyCode::A, Action::MovementTurnLeft),
-                    (KeyCode::D, Action::MovementTurnRight),
-                    (KeyCode::Left, Action::MovementTurnLeft),
-                    (KeyCode::Right, Action::MovementTurnRight),
-                ]),
                 ..Default::default()
             },
         }

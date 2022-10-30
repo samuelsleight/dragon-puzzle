@@ -3,6 +3,7 @@ use bevy::{prelude::*, render::texture::ImageSettings, window::WindowDescriptor,
 use bevy_asset_loader::prelude::*;
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
+use stage::{EntityFinalisationStage, EntityProcessingStage, InputHandlingStage};
 
 use crate::util::prelude::*;
 
@@ -10,6 +11,8 @@ mod action;
 mod entities;
 mod grid;
 mod level;
+mod movement;
+mod stage;
 mod util;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
@@ -92,9 +95,25 @@ fn main() {
                 .with_asset_provider(entities::EntityPlugins),
         )
         .add_plugins(DefaultPlugins)
+        .add_stage_before(
+            CoreStage::PostUpdate,
+            EntityFinalisationStage,
+            SystemStage::parallel(),
+        )
+        .add_stage_before(
+            EntityFinalisationStage,
+            EntityProcessingStage,
+            SystemStage::parallel(),
+        )
+        .add_stage_before(
+            EntityProcessingStage,
+            InputHandlingStage,
+            SystemStage::parallel(),
+        )
         .add_plugin(InputManagerPlugin::<Action>::default())
         .add_plugin(level::LevelPlugin)
         .add_plugin(grid::GridPlugin)
+        .add_plugin(movement::MovementPlugin)
         .add_plugins(entities::EntityPlugins)
         .add_exit_system(State::AssetLoading, spawn_camera)
         .run();

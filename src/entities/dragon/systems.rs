@@ -1,81 +1,45 @@
 use std::f32::consts::PI;
 
-use bevy::prelude::*;
-use leafwing_input_manager::prelude::*;
+use bevy::{ecs::query::WorldQuery, prelude::*};
 
 use crate::{
-    action::Action,
-    entities::wall::Blocker,
-    grid::{GridPosition, GridSize},
+    grid::GridPosition,
     level::{LevelComponent, WinTimer},
+    movement::Movement,
     Direction,
 };
 
-use super::{
-    assets::DragonAssets,
-    components::{DragonHead, Movement},
-};
+use super::{assets::DragonAssets, components::DragonHead};
 
-pub fn dragon_movement(
+#[derive(WorldQuery)]
+pub struct SpawnBodyDragonQuery<'w> {
+    position: &'w GridPosition,
+    direction: &'w Direction,
+    movement: &'w Movement,
+}
+
+pub fn spawn_body(
     mut commands: Commands,
     assets: Res<DragonAssets>,
-    grid_query: Query<&GridSize>,
-    blockers_query: Query<&GridPosition, With<Blocker>>,
-    mut dragons_query: Query<
-        (
-            &ActionState<Action>,
-            &GridPosition,
-            &mut Direction,
-            &mut Movement,
-        ),
-        With<DragonHead>,
-    >,
+    dragons: Query<SpawnBodyDragonQuery, (With<DragonHead>, Changed<Movement>)>,
 ) {
-    let movement_max = grid_query.get_single().ok();
-
-    for (action, position, mut direction, mut movement) in dragons_query.iter_mut() {
-        for action in action.get_just_released() {
-            let action = match action.movement() {
-                Some(action) => action,
-                _ => continue,
-            };
-
-            let proposed_direction = direction.process_action(action);
-            let proposed_position = position.apply_direction(proposed_direction);
-
-            if let Some(max) = movement_max {
-                if proposed_position.x < 0
-                    || proposed_position.x >= max.width as i32
-                    || proposed_position.y < 0
-                    || proposed_position.y >= max.height as i32
-                {
-                    continue;
-                }
-            }
-
-            if blockers_query
-                .iter()
-                .any(|blocker| *blocker == proposed_position)
-            {
-                continue;
-            }
-
-            commands
-                .spawn_bundle(SpriteSheetBundle {
-                    sprite: TextureAtlasSprite {
-                        index: 1,
-                        ..Default::default()
-                    },
-                    texture_atlas: assets.atlas.clone(),
-                    ..Default::default()
-                })
-                .insert(LevelComponent)
-                .insert(*direction)
-                .insert(*position);
-
-            *direction = proposed_direction;
-            movement.0 = Some(proposed_position);
+    for dragon in dragons.iter() {
+        if dragon.movement.0.is_none() {
+            continue;
         }
+
+        commands
+            .spawn_bundle(SpriteSheetBundle {
+                sprite: TextureAtlasSprite {
+                    index: 1,
+                    ..Default::default()
+                },
+                texture_atlas: assets.atlas.clone(),
+                ..Default::default()
+            })
+            .insert(LevelComponent)
+            .insert(*dragon.position)
+            .insert(*dragon.direction);
     }
 }
 
@@ -90,14 +54,6 @@ pub fn rotate_dragons(mut q: Query<(&Direction, &mut Transform), Changed<Directi
                     Direction::Right => 180.0,
                 },
         );
-    }
-}
-
-pub fn finish_movement(mut query: Query<(&mut GridPosition, &mut Movement), Changed<Movement>>) {
-    for (mut position, mut movement) in query.iter_mut() {
-        if let Some(proposed_position) = movement.0.take() {
-            *position = proposed_position;
-        }
     }
 }
 
