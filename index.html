@@ -1,15 +1,10 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <link rel="preload" href="/dragon-puzzle/dragon-puzzle-78a3ff35b304e96c_bg.wasm" as="fetch" type="application/wasm"
-        crossorigin="">
-    <link rel="modulepreload" href="/dragon-puzzle/dragon-puzzle-78a3ff35b304e96c.js">
-</head>
-
-<body>
-    <script
-        type="module">import init from '/dragon-puzzle/dragon-puzzle-78a3ff35b304e96c.js'; init('/dragon-puzzle-78a3ff35b304e96c_bg.wasm');</script>
-</body>
-
+  <head>
+    <meta charset="UTF-8" />  
+  </head>
+  <script type="module">
+    import init from './dragon-puzzle.js'
+    init()
+  </script>
 </html>
