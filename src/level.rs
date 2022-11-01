@@ -31,6 +31,17 @@ pub struct LevelConfig {
     pub dragons: Vec<DragonConfig>,
 }
 
+#[cfg(target_family = "wasm")]
+#[derive(AssetCollection)]
+struct LevelAssets {
+    #[asset(
+        paths("levels/1.level", "levels/2.level", "levels/3.level"),
+        collection(typed)
+    )]
+    levels: Vec<Handle<LevelConfig>>,
+}
+
+#[cfg(not(target_family = "wasm"))]
 #[derive(AssetCollection)]
 struct LevelAssets {
     #[asset(path = "levels", collection(typed))]
