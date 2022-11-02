@@ -3,8 +3,8 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{
     action::Action,
+    direction::Direction,
     grid::{GridPosition, GridSize},
-    Direction,
 };
 
 use super::components::{Blocker, Movement, MovementManager};

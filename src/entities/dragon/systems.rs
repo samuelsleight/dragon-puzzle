@@ -3,10 +3,10 @@ use std::f32::consts::PI;
 use bevy::{ecs::query::WorldQuery, prelude::*};
 
 use crate::{
+    direction::Direction,
     grid::GridPosition,
     level::{LevelComponent, WinTimer},
     movement::Movement,
-    Direction,
 };
 
 use super::{assets::DragonAssets, components::DragonHead};

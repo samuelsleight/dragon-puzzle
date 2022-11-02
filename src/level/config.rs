@@ -1,7 +1,7 @@
 use bevy::reflect::TypeUuid;
 use serde::Deserialize;
 
-use crate::Direction;
+use crate::direction::Direction;
 
 #[derive(Deserialize, Clone, Copy)]
 pub struct DragonConfig {

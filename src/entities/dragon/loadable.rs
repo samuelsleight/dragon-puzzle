@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 
 use crate::{
+    direction::Direction,
     grid::GridPosition,
     level::{LevelComponent, LevelConfig},
     movement::Movement,
     util::prelude::*,
-    Direction,
 };
 
 use super::{assets::DragonAssets, components::DragonHead};

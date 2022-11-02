@@ -1,6 +1,6 @@
 use bevy::prelude::Component;
 
-use crate::Direction;
+use crate::direction::Direction;
 
 #[derive(Component, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct GridSize {

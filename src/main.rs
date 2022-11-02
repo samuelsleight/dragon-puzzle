@@ -1,13 +1,16 @@
-use action::{Action, MovementAction};
 use bevy::{prelude::*, render::texture::ImageSettings, window::WindowDescriptor, DefaultPlugins};
 use bevy_asset_loader::prelude::*;
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
-use stage::{EntityFinalisationStage, EntityProcessingStage, InputHandlingStage};
 
-use crate::util::prelude::*;
+use crate::{
+    action::Action,
+    stage::{EntityFinalisationStage, EntityProcessingStage, InputHandlingStage},
+    util::prelude::*,
+};
 
 mod action;
+mod direction;
 mod entities;
 mod grid;
 mod level;
@@ -20,52 +23,6 @@ enum State {
     AssetLoading,
     LevelLoading,
     InLevel,
-}
-
-#[derive(serde::Deserialize, Component, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub enum Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-}
-
-impl Direction {
-    fn process_action(self, action: MovementAction) -> Self {
-        match action {
-            MovementAction::Forwards => self,
-            MovementAction::TurnLeft => match self {
-                Direction::Up => Direction::Left,
-                Direction::Down => Direction::Right,
-                Direction::Left => Direction::Down,
-                Direction::Right => Direction::Up,
-            },
-            MovementAction::TurnRight => match self {
-                Direction::Up => Direction::Right,
-                Direction::Down => Direction::Left,
-                Direction::Left => Direction::Up,
-                Direction::Right => Direction::Down,
-            },
-        }
-    }
-
-    fn delta(self) -> (i32, i32) {
-        match self {
-            Direction::Up => (0, 1),
-            Direction::Down => (0, -1),
-            Direction::Left => (-1, 0),
-            Direction::Right => (1, 0),
-        }
-    }
-
-    fn opposite(self) -> Self {
-        match self {
-            Direction::Up => Direction::Down,
-            Direction::Down => Direction::Up,
-            Direction::Left => Direction::Right,
-            Direction::Right => Direction::Left,
-        }
-    }
 }
 
 fn spawn_camera(mut commands: Commands) {
