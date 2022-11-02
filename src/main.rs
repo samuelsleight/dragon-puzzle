@@ -30,7 +30,9 @@ fn spawn_camera(mut commands: Commands) {
 }
 
 fn main() {
+    #[rustfmt::skip]
     App::new()
+        // Setup window / application settings
         .insert_resource(WindowDescriptor {
             width: 800.0,
             height: 600.0,
@@ -44,6 +46,12 @@ fn main() {
             alpha: 1.0,
         }))
         .insert_resource(ImageSettings::default_nearest())
+
+        // Add dependent plugins
+        .add_plugins(DefaultPlugins)
+        .add_plugin(InputManagerPlugin::<Action>::default())
+
+        // Setup the asset loading states
         .add_loopless_state(State::AssetLoading)
         .add_loading_state(
             LoadingState::new(State::AssetLoading)
@@ -51,7 +59,8 @@ fn main() {
                 .with_asset_provider(level::LevelPlugin)
                 .with_asset_provider(entities::EntityPlugins),
         )
-        .add_plugins(DefaultPlugins)
+
+        // Add ordered stages for system management
         .add_stage_before(
             CoreStage::PostUpdate,
             EntityFinalisationStage,
@@ -67,11 +76,16 @@ fn main() {
             InputHandlingStage,
             SystemStage::parallel(),
         )
-        .add_plugin(InputManagerPlugin::<Action>::default())
+
+        // Install all game plugins
         .add_plugin(level::LevelPlugin)
         .add_plugin(grid::GridPlugin)
         .add_plugin(movement::MovementPlugin)
         .add_plugins(entities::EntityPlugins)
+
+        // Setup the camera
         .add_exit_system(State::AssetLoading, spawn_camera)
+
+        // Run the game 🚀
         .run();
 }
