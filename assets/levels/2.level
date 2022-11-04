@@ -9,5 +9,15 @@
             "position": [9, 4],
             "direction": "Left"
         }
+    ],
+    "walls": [
+        {
+            "from": [1, 2],
+            "to": [2, 3]
+        },
+        {
+            "from": [6, 1],
+            "to": [7, 2]
+        }
     ]
 }

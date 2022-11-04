@@ -9,9 +9,18 @@ pub struct DragonConfig {
     pub direction: Direction,
 }
 
+#[derive(Deserialize, Clone, Copy)]
+pub struct WallConfig {
+    pub from: [i32; 2],
+    pub to: [i32; 2],
+}
+
 #[derive(Deserialize, TypeUuid, Clone)]
 #[uuid = "8d84e066-5bad-49f1-85d1-60788779f1d5"]
 pub struct LevelConfig {
     pub size: [u32; 2],
     pub dragons: Vec<DragonConfig>,
+
+    #[serde(default)]
+    pub walls: Vec<WallConfig>,
 }

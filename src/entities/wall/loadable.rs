@@ -40,12 +40,11 @@ impl WallBundle {
 
 impl Loadable<LevelConfig> for WallBundle {
     fn from_scene(world: &mut World, scene: &LevelConfig) {
-        world.spawn_batch([
-            WallBundle::new(GridPosition { x: 1, y: 1 }),
-            WallBundle::new(GridPosition {
-                x: scene.size[0] as i32 - 2,
-                y: 1,
-            }),
-        ]);
+        world.spawn_batch(scene.walls.iter().flat_map(|wall_range| {
+            (wall_range.from[0]..=wall_range.to[0]).flat_map(|x| {
+                (wall_range.from[1]..=wall_range.to[1])
+                    .map(move |y| WallBundle::new(GridPosition::new(x, y)))
+            })
+        }));
     }
 }
