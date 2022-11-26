@@ -16,8 +16,7 @@ pub struct GridBundle {
 impl Loadable<LevelConfig> for GridBundle {
     fn from_scene(world: &mut World, level: &LevelConfig) {
         world
-            .spawn()
-            .insert_bundle(GridBundle {
+            .spawn(GridBundle {
                 size: GridSize::new(level.size[0], level.size[1]),
                 scale: GridScale::new_square(32.0),
             })

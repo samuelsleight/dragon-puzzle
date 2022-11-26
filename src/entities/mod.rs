@@ -16,9 +16,10 @@ impl<State: StateData> AssetProvider<State> for EntityPlugins {
 }
 
 impl PluginGroup for EntityPlugins {
-    fn build(&mut self, group: &mut PluginGroupBuilder) {
-        group.add(background::BackgroundPlugin);
-        group.add(wall::WallPlugin);
-        group.add(dragon::DragonPlugin);
+    fn build(self) -> PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>()
+            .add(background::BackgroundPlugin)
+            .add(wall::WallPlugin)
+            .add(dragon::DragonPlugin)
     }
 }

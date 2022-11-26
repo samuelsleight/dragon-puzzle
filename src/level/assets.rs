@@ -3,7 +3,7 @@ use bevy_asset_loader::prelude::*;
 
 use super::config::LevelConfig;
 
-#[derive(AssetCollection)]
+#[derive(AssetCollection, Resource)]
 pub struct LevelAssets {
     #[cfg_attr(
         target_family = "wasm",

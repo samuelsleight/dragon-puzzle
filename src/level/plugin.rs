@@ -25,7 +25,7 @@ impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(JsonAssetPlugin::<LevelConfig>::new(&["level"]))
             .add_plugin(LevelSwitcherPlugin)
-            .add_enter_system(State::LevelLoading, load_level.exclusive_system())
+            .add_enter_system(State::LevelLoading, load_level)
             .add_exit_system(State::InLevel, unload_level)
             .add_system(
                 check_win_timer

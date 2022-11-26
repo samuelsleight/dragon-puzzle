@@ -1,4 +1,7 @@
-use bevy::{prelude::*, render::texture::ImageSettings, window::WindowDescriptor, DefaultPlugins};
+use bevy::{
+    core_pipeline::clear_color::ClearColorConfig, prelude::*, window::WindowDescriptor,
+    DefaultPlugins,
+};
 use bevy_asset_loader::prelude::*;
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -26,29 +29,38 @@ enum State {
 }
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle {
+        camera_2d: Camera2d {
+            clear_color: ClearColorConfig::Custom(Color::Rgba {
+                red: 0.15,
+                green: 0.55,
+                blue: 0.35,
+                alpha: 1.0,
+            }),
+        },
+        ..Default::default()
+    });
 }
 
 fn main() {
     #[rustfmt::skip]
     App::new()
         // Setup window / application settings
-        .insert_resource(WindowDescriptor {
-            width: 800.0,
-            height: 600.0,
-            title: "🐉".into(),
-            ..Default::default()
-        })
-        .insert_resource(ClearColor(Color::Rgba {
-            red: 0.15,
-            green: 0.55,
-            blue: 0.35,
-            alpha: 1.0,
-        }))
-        .insert_resource(ImageSettings::default_nearest())
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    window: WindowDescriptor {
+                        width: 800.0,
+                        height: 600.0,
+                        title: "🐉".into(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
 
         // Add dependent plugins
-        .add_plugins(DefaultPlugins)
         .add_plugin(InputManagerPlugin::<Action>::default())
 
         // Setup the asset loading states

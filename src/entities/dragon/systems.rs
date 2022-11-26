@@ -29,7 +29,7 @@ pub fn spawn_body(
         }
 
         commands
-            .spawn_bundle(SpriteSheetBundle {
+            .spawn(SpriteSheetBundle {
                 sprite: TextureAtlasSprite {
                     index: 1,
                     ..Default::default()
@@ -66,6 +66,6 @@ pub fn check_win(
         .any(|[a, b]| a.0.apply_direction(*a.1) == *b.0 && a.1.opposite() == *b.1);
 
     if dragons_opposite {
-        commands.insert_resource(WinTimer(Timer::from_seconds(0.5, false)));
+        commands.insert_resource(WinTimer(Timer::from_seconds(0.5, TimerMode::Once)));
     }
 }

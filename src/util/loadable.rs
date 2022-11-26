@@ -1,5 +1,6 @@
-use bevy::prelude::{App, Mut, World};
+use bevy::prelude::{App, Mut, Resource, World};
 
+#[derive(Resource)]
 struct Loadables<Scene>(pub Vec<fn(&mut World, &Scene)>);
 
 pub trait Loadable<Scene> {
